@@ -5,13 +5,13 @@ date: "Saturday, November 21, 2015"
 output: html_document
 ---
 ## This submission builds a machine learning algorithm to predict activity quality from activity monitors.
-This analisys includes loading data, creating validation set for estimating out of sample error, getting rid of NA variables, some other strange looking variables, chacking hihgly correlated variables and creating a model using random forest. 
+This analisys includes loading data, creating validation set for estimating out of sample error, getting rid of NA variables and some other strange looking variables, checking for hihgly correlated variables and creating a model using random forest. 
 The training data for this project are available here: 
-https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv
-The test data are available here: 
+https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv   
+The test data are available here:  
 https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv
 
-```{r}
+```{r, results='hide'}
 library(caret); library(randomForest) # library needed for this analisys 
 ```
 
@@ -35,10 +35,10 @@ training <- training[, !colSums(is.na(training))/dim(training)[1] > 0.95]
 ```
 checking how many NA's left
 ```{r}
-colSums(is.na(training))[colSums(is.na(training)) != 0] # no NA's left, so there is no need to use  impute technics
+colSums(is.na(training))[colSums(is.na(training)) != 0] 
 ```
-we have now only 93 variables instead of 160
-but there are several factor variables which have "" as a value
+no NA's left, so there is no need to use impute technics  
+we have now only 93 variables instead of 160, but there are several factor variables which have "" as a value  
 #### getting rid off variables that have > 95% of "" as value
 ```{r}
 x <- NULL
@@ -53,10 +53,10 @@ training <- training[, -x]
 so we have only 60 variables
 checking are there factor variables which has "" as a value
 ```{r}
-sum(training[, 1:60] == "") # no "" left, so no need to use impute technics
+sum(training[, 1:60] == "") 
 ```
-
-and of course our output cannot depends on name, on day and time or on any of the first 7 variables
+no "" left, so no need to use impute technics  
+and of course output cannot depend on name, on day and time or on any of the first 7 variables
 ```{r}
 training <- training[, - (1:7)] # throw first 7 variable out of training set
 ```
@@ -79,30 +79,35 @@ plot(training$yaw_belt, training$total_accel_belt) # does corelation looks like 
 plot(training$total_accel_belt, training$accel_belt_z) # maybe like this, not sure
 ```
 
-#### i will not do PCA processing now, but i will return to this highly correlated variables if my model produce wrong results
+#### i will not do any PCA processing now, but i will return to this highly correlated variables if my model produce wrong results
 
 #### lets look at training set
 ```{r}
 summary(training)
 ```
-#### in general variables looks good, exept some outliers
+#### in general variables looks good, except some outliers
 #### i won't do anything with outliers now, but i will return to this issue if my model produce wrong results
 
 ## Creating prediction model
 ```{r}
+set.seed(12345)
 rfmodelFit <- train(classe ~ ., data = training, method = "rf",
                      trControl = trainControl(method = "cv", number = 3))
 rfmodelFit 
 ```
-#### Accuracy is 0.98, it is very good, but is it biased? 
-#### let's check out of sample errors
+#### Accuracy is 0.98, it is very good, but how much is it biased? 
+#### let's check value of out of sample errors, applying this model to a validation set
 
 ```{r}
 confusionMatrix(predict(rfmodelFit, newdata = validation), validation$classe)
 ```
-#### ConfusionMatrix shows that accuracy on independant validation set is 1, very good result
+#### ConfusionMatrix shows that accuracy of final model on independent validation set is 1, very good result.
 
 
+# Session info
+```{r}
+sessionInfo()
+```
 
 
 
